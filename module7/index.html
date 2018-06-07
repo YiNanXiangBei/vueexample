@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<style>
+    html, body {
+        font: 13px/18px sans-serif;
+    }
+    select {
+        min-width: 300px;
+    }
+</style>
+<body>
+    <div id="el">
+
+    </div>
+
+    <script type="text/x-template" id="demo-template">
+        <div>
+            <p>Selected: {{ selected }}</p>
+            <select2 :options="options" v-model="selected">
+                <option value="0" disabled>Select one</option>
+            </select2>   
+        </div>
+    </script>
+
+    <script type="text/x-template" id="select2-template">
+        <select>
+            <slot></slot>    
+        </select>
+    </script>
+</body>
+<script src="app.js"></script>
+</html>
