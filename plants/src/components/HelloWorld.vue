@@ -1,33 +1,42 @@
 <template>
-  <div class="hello">
-    <div>
-      <input type="file" id="pic" @change="triggleFile" accept="image/*" name="pic" class="input_file"/>
-      <label for="pic">从相册中选择</label>
+<div class="container-fluid">
+  <div class="hello row">
+    <div class="col-xs-12 col-sm-12 col-md-12 show-image">
+     <div>
+      <img :src="src" alt="" class="image">      
+      </div>
+      <div class="pic-label">
+        <input type="file" id="pic" @change="triggleFile" accept="image/*" name="pic" class="input_file"/>
+        <label for="pic" class="btn btn-info btn-block">从相册中选择</label>
+      </div>
     </div>
-    <div>
-      <p v-for="(message, index)  in messages" :key="index">
-        {{message.label_confd}}, {{message.label_name}}
-      </p>
+    <div class="show-all">
+      <div class="show-result">
+      {{name}}
+      </div>
+      <p>{{label}}</p>
     </div>
-    <img :src="src" alt="">
+    
   </div>
+</div>
 </template>
 
 <script>
-import md5 from 'js-md5';
-var Base64 = require('js-base64').Base64;
-import axios from 'axios';
-const qs = require('qs');
+import md5 from 'js-md5'
+var Base64 = require('js-base64').Base64
+import axios from 'axios'
+import 'bootstrap/dist/css/bootstrap.min.css'
+const qs = require('qs')
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App',
       appid: '',
       appkey: '',
-      messages: '',
       image: '',
-      src: ''
+      src: '',
+      label: '',
+      name: ''
     }
   },
   methods: {
@@ -75,7 +84,9 @@ export default {
         // Do whatever you want to transform the data
           console.log(data);
           data = JSON.parse(data);
-          _this.messages = data.data.tag_list;
+          _this.label = '置信度：' + toPercent(data.data.tag_list[0].label_confd);
+          _this.name = data.data.tag_list[0].label_name;
+          
           return data;
          
         }],
@@ -85,7 +96,7 @@ export default {
     triggleFile(event) {
       //处理上传图片问题
       let file = event.target.files[0];
-      if (file.size > 1048576) {
+      if (file.size > 1024 * 1024) {
         alert('上传图片大小不能超过1M')
       }
       let reader = new FileReader();
@@ -97,6 +108,7 @@ export default {
         // console.log(e.target.result);
         this.queryPic();
       };
+
     }
   }
 }
@@ -113,6 +125,10 @@ function objKeySort(arys) {
 
     }
     return newObj; //返回排好序的新对象
+};
+
+function toPercent(num) {
+  return ((num * 10000)/100).toFixed(2) + '%';
 }
 
 </script>
@@ -138,25 +154,47 @@ a {
   height: 0.1px;
   opacity: 0;
   overflow: hidden;
+}
+
+.image {
+  padding: 3px;
+  margin-top: 10% ;
+}
+
+.pic-label {
+  position: relative;
+  bottom: 5%
+}
+
+.show-result {
+  display: inline-block;
+  width: 192px;
+  height: 148px;
+  background-image: url(../assets/icon.png);
+  background-position: 0 0;
+  font-style: normal;
+  padding-top: 58px;
+  box-sizing: border-box;
+}
+
+.show-all {
+  font-size: 22px;
+  color: #ffffff;
   position: absolute;
-  z-index: -1;
+  top: 43%;
+  left: 45%;
 }
 
-.input_file + label {
-    font-size: 1.25em;
-    font-weight: 700;
-    color: white;
-    background-color: black;
-    display: inline-block;
-    cursor: pointer; /* 小手光标*/
+.show-image {
+  position: relative;
+  
 }
 
-.input_file + label:hover {
-    background-color: red;
-}
-
-.input_file:focus + label {
-  outline: 1px dotted #000;
-  outline: -webkit-focus-ring-color auto 5px;
+.image {
+  background-color: #000;
+  transition: opacity .5s; 
+  opacity: 1;
+  width: 50%;
+  height: 50%
 }
 </style>
