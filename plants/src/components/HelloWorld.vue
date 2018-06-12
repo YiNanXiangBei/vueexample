@@ -1,25 +1,15 @@
 <template>
   <div class="hello">
     <div>
-      <!-- <label for="appid">App_Id:</label>
-      <input type="text" id="appid" v-model="appid"/>
-
-      <label for="appkey">App_Key:</label> 
-      <input type="text" id="appkey" v-model="appkey"/> -->
-
-      <label for="pic">上传图片:</label>
-      <input type="file" id="pic" @change="triggleFile" accept="image/*"/>
-
-      <button @click="queryPic">查询</button>
+      <input type="file" id="pic" @change="triggleFile" accept="image/*" name="pic" class="input_file"/>
+      <label for="pic">从相册中选择</label>
     </div>
     <div>
       <p v-for="(message, index)  in messages" :key="index">
         {{message.label_confd}}, {{message.label_name}}
       </p>
     </div>
-    
-    
-    
+    <img :src="src" alt="">
   </div>
 </template>
 
@@ -36,7 +26,8 @@ export default {
       appid: '',
       appkey: '',
       messages: '',
-      image: ''
+      image: '',
+      src: ''
     }
   },
   methods: {
@@ -82,19 +73,18 @@ export default {
         transformResponse: [function (data) {
           //处理返回数据问题，异步
         // Do whatever you want to transform the data
-          data = JSON.parse(data)
+          console.log(data);
+          data = JSON.parse(data);
           _this.messages = data.data.tag_list;
-          datas = data;
           return data;
          
         }],
       })
+      
     },
     triggleFile(event) {
       //处理上传图片问题
       let file = event.target.files[0];
-      console.log(file)
-      console.log(file.size)
       if (file.size > 1048576) {
         alert('上传图片大小不能超过1M')
       }
@@ -102,12 +92,12 @@ export default {
       reader.readAsDataURL(file);
       reader.onload = e => {
         // console.log(e.target.result.toString().split(',')[1])
+        this.src = e.target.result;
         this.image = e.target.result.toString().split(',')[1];
         // console.log(e.target.result);
-      }
-      
+        this.queryPic();
+      };
     }
-
   }
 }
 
@@ -142,5 +132,31 @@ li {
 }
 a {
   color: #42b983;
+}
+.input_file {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.input_file + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    color: white;
+    background-color: black;
+    display: inline-block;
+    cursor: pointer; /* 小手光标*/
+}
+
+.input_file + label:hover {
+    background-color: red;
+}
+
+.input_file:focus + label {
+  outline: 1px dotted #000;
+  outline: -webkit-focus-ring-color auto 5px;
 }
 </style>

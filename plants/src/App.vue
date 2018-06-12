@@ -1,11 +1,11 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
     <HelloWorld/>
   </div>
 </template>
 
 <script>
+import Vue from 'vue'
 import HelloWorld from './components/HelloWorld'
 
 export default {
@@ -24,5 +24,8 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+body {
+  background-color: #dfc8ca
 }
 </style>
