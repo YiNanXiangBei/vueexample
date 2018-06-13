@@ -19,30 +19,16 @@
           >
           <el-button size="small" type="primary"  v-loading.fullscreen.lock="fullscreenLoading">上传图片<i class="el-icon-upload el-icon--right"></i></el-button>
         </el-upload>
-        <div>
-           <el-tag type="success" v-show="isShow">{{name}}</el-tag>
-          <el-tag type="info" v-show="isShow">{{label}}</el-tag>
+        <div style="margin-top: 30px">
+          <p v-for="(message, index) in messages" :key="index">
+            <el-tag type="success" v-show="isShow">{{message.name}}</el-tag>
+            <el-tag type="info" v-show="isShow">{{message.label}}</el-tag>
+          </p>
+          <el-tag type="danger" v-show="errorShow">{{error}}</el-tag>
         </div>
       </el-main>
     </el-container>
   </el-container>
-  <!-- <div class="hello">
-    <div class="show-image">
-      <div>
-          
-      </div>
-      <div>
-        
-      </div>
-    </div>
-    <div class="show-all">
-      <div class="show-result1">
-      {{name}}
-      </div>
-      <p>{{label}}</p>
-    </div>
-    
-  </div> -->
 </div>
 </template>
 
@@ -59,10 +45,13 @@ export default {
       appkey: '',
       image: '',
       src: '',
-      label: '',
-      name: '',
       isShow: false,
-      fullscreenLoading: false
+      fullscreenLoading: false,
+      messages: [
+
+      ],
+      error: '',
+      errorShow: false
     }
   },
   methods: {
@@ -75,7 +64,6 @@ export default {
         app_id : this.appid,
         time_stamp: timestamp,
         nonce_str: nonce_str,
-        // sign: '',
         scene: '2',
         image: ''
       }
@@ -83,7 +71,6 @@ export default {
       let result = objKeySort(params);
 
       result = Object.keys(result).map(function (key) {
-        // body...
         return encodeURIComponent(key) + "=" + encodeURIComponent(result[key]);
       }).join("&");
       result = result + '&app_key=' + this.appkey
@@ -110,35 +97,29 @@ export default {
         // Do whatever you want to transform the data
           console.log(data);
           data = JSON.parse(data);
-          _this.label = '置信度：' + toPercent(data.data.tag_list[0].label_confd);
-          _this.name = data.data.tag_list[0].label_name;
-          _this.isShow = true;
+          if(data.msg === 'ok') {
+            for(var i=0; i< 3; i++) {
+              var mem = {
+                'label' : '置信度：' + toPercent(data.data.tag_list[i].label_confd),
+                'name' : data.data.tag_list[i].label_name
+              };
+              _this.messages[i] = mem;
+            }
+            _this.isShow = true;
+          } else {
+            _this.errorShow = true;
+            _this.error='没有找到这种植物';          
+          }
           _this.fullscreenLoading = false;
           return data;
-         
         }],
       })
       
     },
-    triggleFile(event) {
-      //处理上传图片问题
-      let file = event.target.files[0];
-      console.log(file);
-      if (file.size > 1024 * 1024) {
-        alert('上传图片大小不能超过1M')
-      }
-      let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = e => {
-        this.src = e.target.result;
-        this.image = e.target.result.toString().split(',')[1];
-        this.queryPic();
-      };
-    },
     handleChange(file) {
       this.isShow = false;
+      this.errorShow = false;
       this.fullscreenLoading = true;
-      console.log(file);
       if (file.size > 1024 * 1024) {
         alert('上传图片大小不能超过1M')
       }
@@ -146,7 +127,6 @@ export default {
       reader.readAsDataURL(file);
       reader.onload = e => {
         this.src = e.target.result;
-        console.log(this.src);
         this.image = e.target.result.toString().split(',')[1];
         this.queryPic();
       };
