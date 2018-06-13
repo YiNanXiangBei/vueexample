@@ -1,23 +1,48 @@
 <template>
-<div class="container-fluid">
-  <div class="hello row">
-    <div class="col-xs-12 col-sm-12 col-md-12 show-image">
-     <div>
-      <img :src="src" alt="" class="image">      
+<div class="">
+  <el-container>
+    <el-header height="250px" style="background: #fff">
+      <el-carousel indicator-position="outside" height="180px" style="margin-top: 20px; background: #67C23A">
+        <el-carousel-item v-for="item in 4" :key="item">
+          <h3>{{ item }}</h3>
+        </el-carousel-item>
+      </el-carousel>
+    </el-header>
+    <el-container>
+      <el-main style="height:500px; text-align:center; display:table-cell;vertical-align:middle;">
+        <img :src="src" alt="" class="image" style="height: 200px; width: 100%; ">
+        <el-upload
+          class="upload-demo"
+          action="#"
+          :before-upload="handleChange"
+          style="margin-top: 30px"
+          >
+          <el-button size="small" type="primary"  v-loading.fullscreen.lock="fullscreenLoading">上传图片<i class="el-icon-upload el-icon--right"></i></el-button>
+        </el-upload>
+        <div>
+           <el-tag type="success" v-show="isShow">{{name}}</el-tag>
+          <el-tag type="info" v-show="isShow">{{label}}</el-tag>
+        </div>
+      </el-main>
+    </el-container>
+  </el-container>
+  <!-- <div class="hello">
+    <div class="show-image">
+      <div>
+          
       </div>
-      <div class="pic-label">
-        <input type="file" id="pic" @change="triggleFile" accept="image/*" name="pic" class="input_file"/>
-        <label for="pic" class="btn btn-info btn-block">从相册中选择</label>
+      <div>
+        
       </div>
     </div>
     <div class="show-all">
-      <div class="show-result">
+      <div class="show-result1">
       {{name}}
       </div>
       <p>{{label}}</p>
     </div>
     
-  </div>
+  </div> -->
 </div>
 </template>
 
@@ -25,7 +50,6 @@
 import md5 from 'js-md5'
 var Base64 = require('js-base64').Base64
 import axios from 'axios'
-import 'bootstrap/dist/css/bootstrap.min.css'
 const qs = require('qs')
 export default {
   name: 'HelloWorld',
@@ -36,7 +60,9 @@ export default {
       image: '',
       src: '',
       label: '',
-      name: ''
+      name: '',
+      isShow: false,
+      fullscreenLoading: false
     }
   },
   methods: {
@@ -86,7 +112,8 @@ export default {
           data = JSON.parse(data);
           _this.label = '置信度：' + toPercent(data.data.tag_list[0].label_confd);
           _this.name = data.data.tag_list[0].label_name;
-          
+          _this.isShow = true;
+          _this.fullscreenLoading = false;
           return data;
          
         }],
@@ -96,19 +123,33 @@ export default {
     triggleFile(event) {
       //处理上传图片问题
       let file = event.target.files[0];
+      console.log(file);
       if (file.size > 1024 * 1024) {
         alert('上传图片大小不能超过1M')
       }
       let reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = e => {
-        // console.log(e.target.result.toString().split(',')[1])
         this.src = e.target.result;
         this.image = e.target.result.toString().split(',')[1];
-        // console.log(e.target.result);
         this.queryPic();
       };
-
+    },
+    handleChange(file) {
+      this.isShow = false;
+      this.fullscreenLoading = true;
+      console.log(file);
+      if (file.size > 1024 * 1024) {
+        alert('上传图片大小不能超过1M')
+      }
+      let reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = e => {
+        this.src = e.target.result;
+        console.log(this.src);
+        this.image = e.target.result.toString().split(',')[1];
+        this.queryPic();
+      };
     }
   }
 }
@@ -116,7 +157,6 @@ export default {
 function objKeySort(arys) { 
     //先用Object内置类的keys方法获取要排序对象的属性名，再利用Array原型上的sort方法对获取的属性名进行排序，newkey是一个数组
     var newkey = Object.keys(arys).sort();　　 
-    //console.log('newkey='+newkey);
     var newObj = {}; //创建一个新的对象，用于存放排好序的键值对
     for(var i = 0; i < newkey.length; i++) {
         //遍历newkey数组
@@ -149,52 +189,6 @@ li {
 a {
   color: #42b983;
 }
-.input_file {
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-}
 
-.image {
-  padding: 3px;
-  margin-top: 10% ;
-}
 
-.pic-label {
-  position: relative;
-  bottom: 5%
-}
-
-.show-result {
-  display: inline-block;
-  width: 192px;
-  height: 148px;
-  background-image: url(../assets/icon.png);
-  background-position: 0 0;
-  font-style: normal;
-  padding-top: 58px;
-  box-sizing: border-box;
-}
-
-.show-all {
-  font-size: 22px;
-  color: #ffffff;
-  position: absolute;
-  top: 43%;
-  left: 45%;
-}
-
-.show-image {
-  position: relative;
-  
-}
-
-.image {
-  background-color: #000;
-  transition: opacity .5s; 
-  opacity: 1;
-  width: 50%;
-  height: 50%
-}
 </style>
