@@ -37,12 +37,13 @@ import md5 from 'js-md5'
 var Base64 = require('js-base64').Base64
 import axios from 'axios'
 const qs = require('qs')
+import Resize from '../../static/resize.js'
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      appid: '1106883153',
-      appkey: '8r7r6vB4grDe1zON',
+      appid: '',
+      appkey: '',
       image: '',
       src: '',
       isShow: false,
@@ -121,17 +122,32 @@ export default {
       this.errorShow = false;
       this.fullscreenLoading = true;
       let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = e => {
-
-        let img = new Image();
-        img.src = e.target.result;
-        let res = compress(img);
-
-        this.src = e.target.result;
-        this.image = e.target.result.toString().split(',')[1];
-        this.queryPic();
-      };
+      if(file.type === 'image/jpeg') {
+        if(file.size > 1024 * 1024) {
+          let _this = this;
+          Resize.imageResizeTool.fileResizetoFile(file,0.6,function(res){
+              //回调中的res是一个压缩后的Blob类型（可以当做File类型看待）文件；
+              // file = res;
+              Resize.imageResizeTool.filetoDataURL(res, function(e) {
+                _this.src = e;
+                _this.image = e.toString().split(',')[1];
+                _this.queryPic();
+              });
+              console.log(res);
+          });
+        } else {
+          reader.readAsDataURL(file);
+            reader.onload = e => {
+              this.src = e.target.result;
+              this.image = e.target.result.toString().split(',')[1];
+              this.queryPic();
+            };
+        }
+      } else {
+        alert('图片格式不匹配，要求传入的图片格式为image/jpeg！');
+        this.fullscreenLoading = false;
+      }
+      
     }
   }
 }
