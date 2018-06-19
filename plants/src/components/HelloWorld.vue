@@ -13,8 +13,10 @@
         <img :src="src" alt="" class="image" style="height: 200px; width: 100%; ">
         <el-upload
           class="upload-demo"
-          action="#"
-          :before-upload="handleChange"
+          action="strings"
+          :multiple=false
+          :http-request="uploadFile"
+          :file-list = []
           style="margin-top: 30px"
           >
           <el-button size="small" type="primary"  v-loading.fullscreen.lock="fullscreenLoading">上传图片<i class="el-icon-upload el-icon--right"></i></el-button>
@@ -52,7 +54,10 @@ export default {
 
       ],
       error: '',
-      errorShow: false
+      errorShow: false,
+      uploaddata: {
+
+      }
     }
   },
   methods: {
@@ -70,7 +75,6 @@ export default {
       }
       params.image = this.image;
       let result = objKeySort(params);
-
       result = Object.keys(result).map(function (key) {
         return encodeURIComponent(key) + "=" + encodeURIComponent(result[key]);
       }).join("&");
@@ -96,10 +100,9 @@ export default {
         transformResponse: [function (data) {
           //处理返回数据问题，异步
         // Do whatever you want to transform the data
-          console.log(data);
           data = JSON.parse(data);
           if(data.msg === 'ok') {
-            for(var i=0; i< 3; i++) {
+            for(var i=0; i< 1; i++) {
               var mem = {
                 'label' : '置信度：' + toPercent(data.data.tag_list[i].label_confd),
                 'name' : data.data.tag_list[i].label_name
@@ -117,37 +120,51 @@ export default {
       })
       
     },
-    handleChange(file) {
+    uploadFile: function(item) {
+      this.fullscreenLoading = true;
       this.isShow = false;
       this.errorShow = false;
-      this.fullscreenLoading = true;
+      let file = item.file;
       let reader = new FileReader();
-      if(file.type === 'image/jpeg') {
-        if(file.size > 1024 * 1024) {
-          let _this = this;
-          Resize.imageResizeTool.fileResizetoFile(file,0.6,function(res){
-              //回调中的res是一个压缩后的Blob类型（可以当做File类型看待）文件；
-              // file = res;
-              Resize.imageResizeTool.filetoDataURL(res, function(e) {
-                _this.src = e;
-                _this.image = e.toString().split(',')[1];
-                _this.queryPic();
-              });
-              console.log(res);
-          });
-        } else {
-          reader.readAsDataURL(file);
-            reader.onload = e => {
-              this.src = e.target.result;
-              this.image = e.target.result.toString().split(',')[1];
-              this.queryPic();
-            };
-        }
-      } else {
-        alert('图片格式不匹配，要求传入的图片格式为image/jpeg！');
-        this.fullscreenLoading = false;
-      }
-      
+      reader.readAsDataURL(file);
+      reader.onload = e => {
+        this.src = e.target.result;
+        this.uploaddata.pic = e.target.result.toString().split(',')[1];
+        this.uploaddata.fileName = file.name;
+        let _this = this;
+        axios({
+          url: 'http://127.0.0.1:8080/api/v1/images',
+          method: 'post',
+          data: this.uploaddata,
+          transformRequest: [
+            function (uploaddata) { // 解决传递数组变成对象的问题
+              Object.keys(uploaddata).forEach((key) => {
+                if ((typeof uploaddata[key]) === 'object') {
+                  uploaddata[key] = JSON.stringify(uploaddata[key]) // 这里必须使用内置JSON对象转换
+                }
+              })
+              uploaddata = qs.stringify(uploaddata) // 这里必须使用qs库进行转换
+              return uploaddata
+            }
+          ],
+          transformResponse: [function (data) {
+            //处理返回数据问题，异步
+          // Do whatever you want to transform the data
+            data = JSON.parse(data);
+            if(data.code == 201) {
+              _this.image = data.data.base64;
+              // console.log(_this.image)
+              _this.queryPic();
+            } else {
+              console.log('error');
+            }
+            return data;
+          }],
+        })
+      };
+    },
+    clearUploadedImage: function() {
+      this.$refs.upload.clearFiles();
     }
   }
 }
