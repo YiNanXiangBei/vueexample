@@ -130,48 +130,56 @@ export default {
       this.errorShow = false;
       let file = item.file;
       let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = e => {
-        this.src = e.target.result;
-        this.uploaddata.pic = e.target.result.toString().split(',')[1];
-        this.uploaddata.fileName = file.name;
-        let _this = this;
-        axios({
-          url: 'http://api.wongwongsu.com/api/v1/images',
-          method: 'post',
-          data: this.uploaddata,
-          transformRequest: [
-            function (uploaddata) { // 解决传递数组变成对象的问题
-              Object.keys(uploaddata).forEach((key) => {
-                if ((typeof uploaddata[key]) === 'object') {
-                  uploaddata[key] = JSON.stringify(uploaddata[key]) // 这里必须使用内置JSON对象转换
-                }
-              })
-              uploaddata = qs.stringify(uploaddata) // 这里必须使用qs库进行转换
-              return uploaddata
-            }
-          ],
-          transformResponse: [function (data) {
-            //处理返回数据问题，异步
-          // Do whatever you want to transform the data
-            data = JSON.parse(data);
-            if(data.code == 201) {
-              _this.image = data.data.base64;
-              // console.log(_this.image)
-              _this.queryPic();
-            } else {
-              console.log(data);
-            }
-            return data;
-          }],
-        })
-      };
+      if(file.type == 'image/jpeg') {
+        reader.readAsDataURL(file);
+        reader.onload = e => {
+          this.src = e.target.result;
+          this.uploaddata.pic = e.target.result.toString().split(',')[1];
+          this.uploaddata.fileName = file.name;
+          let _this = this;
+          axios({
+            url: 'http://api.wongwongsu.com/api/v1/images',
+            method: 'post',
+            data: this.uploaddata,
+            transformRequest: [
+              function (uploaddata) { // 解决传递数组变成对象的问题
+                Object.keys(uploaddata).forEach((key) => {
+                  if ((typeof uploaddata[key]) === 'object') {
+                    uploaddata[key] = JSON.stringify(uploaddata[key]) // 这里必须使用内置JSON对象转换
+                  }
+                })
+                uploaddata = qs.stringify(uploaddata) // 这里必须使用qs库进行转换
+                return uploaddata
+              }
+            ],
+            transformResponse: [function (data) {
+              //处理返回数据问题，异步
+            // Do whatever you want to transform the data
+              data = JSON.parse(data);
+              if(data.code == 201) {
+                _this.image = data.data.base64;
+                // console.log(_this.image)
+                _this.queryPic();
+              } else {
+                alert("发生未知错误，请联系管理员！");
+                this.fullscreenLoading = false;
+                console.log(data);
+              }
+              return data;
+            }],
+          })
+        };
+      } else {
+        alert("要求上传的图片格式为 image/jpeg！");
+        this.fullscreenLoading = false;
+      }
     },
     getUrls: function() {
       let _this = this;
       axios.get('http://api.wongwongsu.com/api/v1/urls').then(function(response){  
         _this.urls = response.data.data.urls;
-      }).catch(function (response){  
+      }).catch(function (response){
+        alert("发生未知错误，请联系管理员！")
         console.log(response);//发生错误时执行的代码  
       }); 
     }
