@@ -1,10 +1,10 @@
 <template>
 <div class="">
   <el-container>
-    <el-header height="250px" style="background: #fff">
-      <el-carousel indicator-position="outside" height="180px" style="margin-top: 20px; background: #67C23A">
-        <el-carousel-item v-for="item in 4" :key="item">
-          <h3>{{ item }}</h3>
+    <el-header height="250px">
+      <el-carousel indicator-position="outside" height="180px" style="margin-top: 20px;">
+        <el-carousel-item v-for="(url, index) in urls" :key="index">
+          <img :src="url" alt="" style="height: 100%; width: 100%">
         </el-carousel-item>
       </el-carousel>
     </el-header>
@@ -57,7 +57,10 @@ export default {
       errorShow: false,
       uploaddata: {
 
-      }
+      },
+      urls: [
+
+      ]
     }
   },
   methods: {
@@ -115,6 +118,7 @@ export default {
             _this.error='没有找到这种植物';          
           }
           _this.fullscreenLoading = false;
+          _this.getUrls();
           return data;
         }],
       })
@@ -133,7 +137,7 @@ export default {
         this.uploaddata.fileName = file.name;
         let _this = this;
         axios({
-          url: 'http://127.0.0.1:8080/api/v1/images',
+          url: 'http://api.wongwongsu.com/api/v1/images',
           method: 'post',
           data: this.uploaddata,
           transformRequest: [
@@ -156,16 +160,24 @@ export default {
               // console.log(_this.image)
               _this.queryPic();
             } else {
-              console.log('error');
+              console.log(data);
             }
             return data;
           }],
         })
       };
     },
-    clearUploadedImage: function() {
-      this.$refs.upload.clearFiles();
+    getUrls: function() {
+      let _this = this;
+      axios.get('http://api.wongwongsu.com/api/v1/urls').then(function(response){  
+        _this.urls = response.data.data.urls;
+      }).catch(function (response){  
+        console.log(response);//发生错误时执行的代码  
+      }); 
     }
+  },
+  mounted() {
+     this.getUrls();
   }
 }
 
